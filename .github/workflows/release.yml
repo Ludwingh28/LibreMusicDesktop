@@ -21,6 +21,26 @@ jobs:
 
       - run: npm ci
 
+      # electron-builder uploads the installer, blockmap and latest.yml in
+      # parallel, and each upload creates the release if it can't find one —
+      # so with no release yet, several of them race and you end up with
+      # duplicate drafts splitting the files between them. Creating the draft
+      # up front means every upload finds it and goes into the same one.
+      # Skipped if a release for this version (draft or not) already exists,
+      # so re-running the workflow doesn't duplicate it either.
+      - name: Crear borrador de la release
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v$VERSION"
+          if gh release list --limit 100 --json tagName --jq '.[].tagName' | grep -qx "$TAG"; then
+            echo "Ya existe la release $TAG, se reutiliza."
+          else
+            gh release create "$TAG" --draft --title "$VERSION" --notes "" --target "$GITHUB_SHA"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - run: npm run dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
