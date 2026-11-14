@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;" />
+<title>Acerca de LibreMusic</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0f1115;
+    --card: #1b1e25;
+    --text: #eceff4;
+    --muted: #a7adba;
+    --accent: #ff7a6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 28px 24px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  header { text-align: center; margin-bottom: 18px; }
+  header svg { width: 96px; height: 96px; }
+  h1 { font-size: 26px; margin: 10px 0 2px; }
+  .version { color: var(--muted); margin: 0; }
+  .runtime { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+  section {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 10px 0;
+  }
+  h2 { font-size: 15px; margin: 0 0 8px; color: var(--accent); }
+  p { margin: 0 0 8px; }
+  p:last-child { margin-bottom: 0; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin-bottom: 6px; }
+  li:last-child { margin-bottom: 0; }
+  .dev { font-weight: 700; font-size: 16px; }
+  a { color: var(--accent); text-decoration: none; font-weight: 600; cursor: pointer; }
+  a:hover, a:focus-visible { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  .links { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 18px 0 6px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <header>
+    <!-- Logo de LibreMusic (mismo que assets/libremusic.svg y que la app de Android) -->
+    <svg viewBox="18 18 72 72" role="img" aria-label="LibreMusic">
+      <defs>
+        <linearGradient id="lm-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FF4D3A" />
+          <stop offset="1" stop-color="#B3001B" />
+        </linearGradient>
+      </defs>
+      <circle cx="54" cy="54" r="36" fill="url(#lm-bg)" />
+      <path d="M34 56.5 A20 20 0 0 1 74 56.5" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" />
+      <g fill="#FFFFFF">
+        <rect x="28" y="54.5" width="12" height="20" rx="5" />
+        <rect x="68" y="54.5" width="12" height="20" rx="5" />
+      </g>
+    </svg>
+    <h1>LibreMusic</h1>
+    <p class="version" id="version">Versión —</p>
+    <p class="runtime" id="runtime"></p>
+  </header>
+
+  <section>
+    <h2>¿Qué es LibreMusic?</h2>
+    <p>
+      LibreMusic para escritorio es un cliente libre y no oficial de YouTube Music para Windows.
+      No es un reproductor propio: abre la página oficial de music.youtube.com dentro de su propia
+      ventana y le suma lo que el navegador no trae.
+    </p>
+    <ul>
+      <li>Bloqueo de anuncios con listas públicas de filtros, y un script que salta o silencia los que se cuelan.</li>
+      <li>Botones de anterior, reproducir/pausar y siguiente en la miniatura de la barra de tareas.</li>
+      <li>Ícono en la bandeja del sistema para seguir escuchando con la ventana cerrada.</li>
+      <li>Inicio de sesión con tu cuenta de Google, o importando la sesión desde tu navegador.</li>
+      <li>Actualizaciones automáticas desde GitHub.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Desarrollador</h2>
+    <p class="dev">Ludwing Julian Herrera Justiniano</p>
+    <p>
+      Diseño y desarrollo de LibreMusic para escritorio y de su versión para Android,
+      <a data-link="android" tabindex="0">LibreMusic Mobile</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Objetivo</h2>
+    <p>
+      Proyecto personal y de portafolio, sin fines de lucro. Busca ofrecer una forma ligera y sin
+      distracciones de escuchar música, con código abierto que cualquiera puede leer, estudiar y mejorar.
+    </p>
+  </section>
+
+  <section>
+    <h2>Licencia</h2>
+    <p>
+      LibreMusic para escritorio es software libre bajo la Licencia MIT. Puedes usarlo, copiarlo,
+      modificarlo, publicarlo y distribuirlo libremente, siempre que conserves el aviso de autoría y
+      el texto de la licencia.
+    </p>
+    <p>Se ofrece "tal cual", SIN NINGUNA GARANTÍA de ningún tipo, expresa ni implícita.</p>
+    <div class="links">
+      <a data-link="repo" tabindex="0">Código fuente en GitHub ↗</a>
+      <a data-link="license" tabindex="0">Texto completo de la Licencia MIT ↗</a>
+      <a data-link="issues" tabindex="0">Reportar un problema ↗</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Límites legales</h2>
+    <ul>
+      <li>
+        LibreMusic no está afiliada, asociada, autorizada ni respaldada por Google LLC ni por YouTube.
+        YouTube y YouTube Music son marcas registradas de Google LLC.
+      </li>
+      <li>
+        Todo el contenido (música, videos, portadas y textos) pertenece a sus respectivos titulares de
+        derechos. La app solo carga el sitio oficial de YouTube Music: no aloja, no descarga ni
+        redistribuye contenido.
+      </li>
+      <li>
+        Bloquear y saltar anuncios, como el uso de clientes no oficiales en general, puede no cumplir
+        los Términos de Servicio de YouTube. Cada usuario es responsable de cómo usa la app.
+      </li>
+      <li>
+        Si eres titular de derechos y tienes una inquietud, puedes escribir al desarrollador en el
+        repositorio del proyecto.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Privacidad</h2>
+    <ul>
+      <li>
+        Tu sesión de Google, las cookies que importes desde el navegador y tus ajustes se guardan solo
+        en tu PC, en la carpeta de datos de la app.
+      </li>
+      <li>LibreMusic no tiene servidores propios, no usa analíticas y no recopila datos personales.</li>
+      <li>
+        La app solo se conecta a YouTube/Google para la música, a GitHub para buscar actualizaciones y
+        al servidor de las listas de bloqueo para descargarlas. Los enlaces externos se abren en tu
+        navegador, no dentro de la app.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Créditos</h2>
+    <p>
+      Hecho con Electron, @ghostery/adblocker-electron, electron-updater, electron-builder,
+      electron-window-state y cross-fetch. Gracias a sus autores y comunidades.
+    </p>
+  </section>
+
+  <footer>Hecho por Ludwingh28 · Software libre (MIT)</footer>
+
+  <script>
+    const api = window.libreMusicAbout;
+
+    api.getInfo().then((info) => {
+      document.getElementById('version').textContent = 'Versión ' + info.version;
+      document.getElementById('runtime').textContent =
+        'Electron ' + info.electron + ' · Chromium ' + info.chrome;
+      // Sin enlace configurado, el nombre de la app móvil queda como texto plano.
+      if (!info.androidUrl) {
+        const android = document.querySelector('[data-link="android"]');
+        android.replaceWith(document.createTextNode(android.textContent));
+      }
+    });
+
+    // Los enlaces se piden por clave y main.js decide la URL: la página no
+    // puede abrir direcciones arbitrarias. Siempre se abren en el navegador.
+    document.querySelectorAll('a[data-link]').forEach((a) => {
+      const open = (event) => {
+        event.preventDefault();
+        api.openLink(a.dataset.link);
+      };
+      a.addEventListener('click', open);
+      a.addEventListener('keydown', (event) => { if (event.key === 'Enter') open(event); });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') api.close();
+    });
+  </script>
+</body>
+</html>

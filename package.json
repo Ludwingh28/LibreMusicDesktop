@@ -1,12 +1,11 @@
 {
-  "name": "ytm-desktop",
-  "version": "1.1.1",
-  "description": "YouTube Music de escritorio sin anuncios, con Electron",
+  "name": "libremusic",
+  "version": "1.2.0",
+  "description": "LibreMusic: YouTube Music de escritorio sin anuncios, con Electron",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
-    "make-icon": "node scripts/make-icon.js",
     "dist": "electron-builder"
   },
   "keywords": [],
@@ -15,22 +14,29 @@
   "type": "commonjs",
   "build": {
     "appId": "com.ludwing.ytmdesktop",
-    "productName": "YTM Desktop",
+    "productName": "LibreMusic",
     "files": [
       "main.js",
       "preload.js",
       "import-session.html",
       "import-session-preload.js",
+      "about.html",
+      "about-preload.js",
       "assets/**/*"
     ],
     "icon": "assets/icon.png",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.ico"
     },
     "publish": {
       "provider": "github",
       "owner": "Ludwingh28",
-      "repo": "YTM_Desktop"
+      "repo": "LibreMusicDesktop"
+    },
+    "nsis": {
+      "shortcutName": "LibreMusic",
+      "uninstallDisplayName": "LibreMusic"
     }
   },
   "devDependencies": {

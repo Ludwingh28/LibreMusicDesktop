@@ -6,6 +6,43 @@ const windowStateKeeper = require('electron-window-state');
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
 const { autoUpdater } = require('electron-updater');
 
+// --- One-time data migration from the old "YTM Desktop" name -------------
+// Up to v1.1.x the package was called "ytm-desktop", so Electron kept all
+// user data (Google session cookies, settings, window position, adblock
+// cache) in %APPDATA%\ytm-desktop. Renaming the package to "libremusic"
+// moves that to %APPDATA%\libremusic, which would silently log everyone
+// out. Move the old folder over before anything touches userData — this
+// must run before requestSingleInstanceLock(), which creates a lockfile
+// in the new folder. The cookie encryption key lives in "Local State"
+// inside the same folder, so moving it as a whole keeps cookies readable.
+const LEGACY_APP_NAME = 'ytm-desktop';
+
+function migrateLegacyUserData() {
+  const newDir = app.getPath('userData');
+  const legacyDir = path.join(app.getPath('appData'), LEGACY_APP_NAME);
+  if (fs.existsSync(newDir) || !fs.existsSync(legacyDir)) return;
+
+  try {
+    fs.renameSync(legacyDir, newDir);
+  } catch (err) {
+    // rename can fail if something still holds a file open (e.g. the old
+    // version wasn't fully closed); fall back to copying so the user keeps
+    // their session either way. The old folder is left as-is in that case.
+    console.error('No se pudo mover la carpeta de datos antigua, copiando:', err);
+    try {
+      fs.cpSync(legacyDir, newDir, {
+        recursive: true,
+        filter: (src) => path.basename(src) !== 'lockfile',
+      });
+    } catch (copyErr) {
+      console.error('No se pudieron migrar los datos de YTM Desktop:', copyErr);
+    }
+  }
+}
+
+migrateLegacyUserData();
+
+const APP_NAME = 'LibreMusic';
 const YTM_URL = 'https://music.youtube.com';
 
 let mainWindow = null;
@@ -209,15 +246,90 @@ function openCookieImportWindow() {
 }
 
 function setupCookieImport() {
-  ipcMain.handle('ytm:import-cookies', async (_event, rawJson) => importCookiesFromJson(rawJson));
+  ipcMain.handle('libremusic:import-cookies', async (_event, rawJson) => importCookiesFromJson(rawJson));
 
-  ipcMain.on('ytm:import-cookies-done', () => {
+  ipcMain.on('libremusic:import-cookies-done', () => {
     if (cookieImportWindow) cookieImportWindow.close();
     if (mainWindow) mainWindow.loadURL(YTM_URL);
   });
 }
 
-const REPO_URL = 'https://github.com/Ludwingh28/YTM_Desktop';
+const REPO_URL = 'https://github.com/Ludwingh28/LibreMusicDesktop';
+
+// --- "Acerca de" window -------------------------------------------------
+// Link to the Android version (LibreMusic Mobile) shown in the About
+// window. Set it to '' to show the name as plain text instead of a link.
+const ANDROID_URL = 'https://github.com/Ludwingh28/LibreMusicMobile';
+
+let aboutWindow = null;
+
+function getAboutInfo() {
+  return {
+    version: app.getVersion(),
+    electron: process.versions.electron,
+    chrome: process.versions.chrome,
+    androidUrl: ANDROID_URL,
+  };
+}
+
+function openAboutWindow() {
+  if (aboutWindow) {
+    if (aboutWindow.isMinimized()) aboutWindow.restore();
+    aboutWindow.focus();
+    return;
+  }
+
+  // Not modal on purpose: it's a long, scrollable read, and the player
+  // (and its controls) should stay usable while it's open.
+  aboutWindow = new BrowserWindow({
+    width: 560,
+    height: 720,
+    minWidth: 420,
+    minHeight: 480,
+    maximizable: false,
+    parent: mainWindow,
+    autoHideMenuBar: true,
+    backgroundColor: '#0f1115',
+    title: `Acerca de ${APP_NAME}`,
+    icon: WINDOW_ICON_PATH,
+    webPreferences: {
+      preload: path.join(__dirname, 'about-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  aboutWindow.setMenu(null);
+  aboutWindow.loadFile(path.join(__dirname, 'about.html'));
+
+  aboutWindow.on('closed', () => {
+    aboutWindow = null;
+  });
+}
+
+function setupAboutWindow() {
+  ipcMain.handle('libremusic:about-info', () => getAboutInfo());
+
+  // The About page can only ask to open the links we gave it (repo,
+  // license, Android) — never an arbitrary URL — and only in the system
+  // browser, so it can't be used to navigate the app anywhere.
+  ipcMain.on('libremusic:open-link', (event, key) => {
+    if (!aboutWindow || event.sender !== aboutWindow.webContents) return;
+    const links = {
+      repo: REPO_URL,
+      license: `${REPO_URL}/blob/main/LICENSE`,
+      issues: `${REPO_URL}/issues`,
+      android: ANDROID_URL,
+    };
+    const url = links[key];
+    if (url) shell.openExternal(url);
+  });
+
+  ipcMain.on('libremusic:about-close', (event) => {
+    if (aboutWindow && event.sender === aboutWindow.webContents) aboutWindow.close();
+  });
+}
 
 // electron-updater carries whatever we write in the GitHub Release's
 // description as `info.releaseNotes` — this just turns that into plain text
@@ -365,8 +477,8 @@ function injectAdSkipping(win) {
   // slips in without triggering a mutation we're watching.
   const script = `
     (function () {
-      if (window.__ytmAdSkipperInstalled) return;
-      window.__ytmAdSkipperInstalled = true;
+      if (window.__libreMusicAdSkipperInstalled) return;
+      window.__libreMusicAdSkipperInstalled = true;
 
       const AD_HIDE_SELECTORS = [
         '.ytp-ad-overlay-container',
@@ -445,12 +557,12 @@ function injectAdSkipping(win) {
           return;
         }
         const video = document.querySelector('video');
-        if (!video || !window.ytmDesktop) return;
+        if (!video || !window.libreMusic) return;
         videoListenerAttached = true;
         clearInterval(videoWatchTimer);
-        video.addEventListener('play', () => window.ytmDesktop.notifyPlaybackState(true));
-        video.addEventListener('pause', () => window.ytmDesktop.notifyPlaybackState(false));
-        window.ytmDesktop.notifyPlaybackState(!video.paused);
+        video.addEventListener('play', () => window.libreMusic.notifyPlaybackState(true));
+        video.addEventListener('pause', () => window.libreMusic.notifyPlaybackState(false));
+        window.libreMusic.notifyPlaybackState(!video.paused);
       }, 500);
     })();
   `;
@@ -461,11 +573,15 @@ function injectAdSkipping(win) {
 }
 
 const ICON_PATH = path.join(__dirname, 'assets', 'icon.png');
+// Windows draws window/taskbar icons much sharper from a multi-size .ico
+// (16–256 px) than from the 512 px PNG scaled down on the fly.
+const WINDOW_ICON_PATH =
+  process.platform === 'win32' ? path.join(__dirname, 'assets', 'icon.ico') : ICON_PATH;
 
 function createTray(win) {
   const trayIcon = nativeImage.createFromPath(ICON_PATH).resize({ width: 32, height: 32 });
   tray = new Tray(trayIcon);
-  tray.setToolTip('YTM Desktop');
+  tray.setToolTip(APP_NAME);
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -497,6 +613,11 @@ function createTray(win) {
           "document.querySelector('.previous-button')?.click();"
         );
       },
+    },
+    { type: 'separator' },
+    {
+      label: `Acerca de ${APP_NAME}`,
+      click: () => openAboutWindow(),
     },
     { type: 'separator' },
     {
@@ -602,6 +723,11 @@ function createMenu(win) {
           label: 'Versión actual: ' + app.getVersion(),
           enabled: false,
         },
+        { type: 'separator' },
+        {
+          label: `Acerca de ${APP_NAME}`,
+          click: () => openAboutWindow(),
+        },
       ],
     },
   ];
@@ -626,7 +752,7 @@ async function createWindow() {
     minHeight: 560,
     backgroundColor: '#030303',
     autoHideMenuBar: false,
-    icon: ICON_PATH,
+    icon: WINDOW_ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -682,7 +808,7 @@ async function createWindow() {
     dialog
       .showMessageBox(mainWindow, {
         type: 'question',
-        title: 'Cerrar YTM Desktop',
+        title: `Cerrar ${APP_NAME}`,
         message: '¿Qué quieres hacer al cerrar la ventana?',
         detail:
           'Puedes seguir escuchando música en segundo plano (la app queda en la bandeja del sistema), o salir por completo.',
@@ -734,6 +860,7 @@ if (!gotSingleInstanceLock) {
     }
     setupClientHintsSpoofing(ses);
     setupCookieImport();
+    setupAboutWindow();
 
     await createWindow();
     setupAutoUpdates();

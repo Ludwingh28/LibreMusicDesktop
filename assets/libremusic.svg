@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="512" height="512">
+  <title>LibreMusic</title>
+  <defs>
+    <linearGradient id="lm-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF4D3A"/>
+      <stop offset="1" stop-color="#B3001B"/>
+    </linearGradient>
+  </defs>
+  <circle cx="54" cy="54" r="36" fill="url(#lm-bg)"/>
+  <path d="M34 56.5 A20 20 0 0 1 74 56.5" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <g fill="#FFFFFF">
+    <rect x="28" y="54.5" width="12" height="20" rx="5"/>
+    <rect x="68" y="54.5" width="12" height="20" rx="5"/>
+  </g>
+</svg>

@@ -90,11 +90,11 @@
       status.textContent = 'Importando...';
       btn.disabled = true;
       try {
-        const result = await window.ytmImport.importCookies(textarea.value);
+        const result = await window.libreMusicImport.importCookies(textarea.value);
         if (result.ok) {
           status.className = 'ok';
           status.textContent = `Listo: ${result.count} cookies importadas. Cerrando y recargando...`;
-          setTimeout(() => window.ytmImport.closeAndReload(), 1200);
+          setTimeout(() => window.libreMusicImport.closeAndReload(), 1200);
         } else {
           status.className = 'error';
           status.textContent = 'Error: ' + result.error;
